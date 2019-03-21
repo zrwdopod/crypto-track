@@ -1,0 +1,4 @@
+{
+  "crypto-api": "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=5000&convert=USD",
+  "currency-api-key": "1bdc93b9c2565de8d7a70d5b9a735130"
+}

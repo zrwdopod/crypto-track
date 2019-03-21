@@ -23,7 +23,8 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.zrworg.cryptotrack"
     },
     "description": "Cryptographic currency, buy, sell, real-time currency exchange rate, real-time cryptocurrency exchange rate, profitability",
     "githubUrl": "https://github.com/zrwdopod/crypto-track.git"

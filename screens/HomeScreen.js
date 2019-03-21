@@ -1,6 +1,10 @@
 import React from 'react';
 import axios from 'axios';
+import {connect} from 'react-redux'
+import * as actions from '../actions/Home'
+
 import {
+    AsyncStorage,
     Image,
     Platform,
     ScrollView,
@@ -15,7 +19,7 @@ import {WebBrowser} from 'expo';
 
 import {MonoText} from '../components/StyledText';
 
-export default class HomeScreen extends React.Component {
+class HomeScreen extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -29,8 +33,8 @@ export default class HomeScreen extends React.Component {
             revenueRate: 0,
             cryptoType: 'BTC',
             cryptoCoins: ['BTC', 'ETH'],
-            cryptoBuyRate:0,
-            cryptoSellRate:0
+            cryptoBuyRate: 0,
+            cryptoSellRate: 0
         };
     }
 
@@ -42,11 +46,25 @@ export default class HomeScreen extends React.Component {
         try {
             const res = await axios.get('http://data.fixer.io/api/latest?access_key=1bdc93b9c2565de8d7a70d5b9a735130');
             let ratesBaseEUR = res.data.rates;
+
+            let cryptoType = await AsyncStorage.getItem('CRYPTO_TYPE');
+
+            if (cryptoType) {
+                this.setState({cryptoType});
+            }
+            let buyCurrencyType = await AsyncStorage.getItem('BUY_CURRENCY_TYPE');
+            if (buyCurrencyType) {
+                this.setState({buyCurrencyType});
+            }
+            let sellCurrencyType = await AsyncStorage.getItem('SELL_CURRENCY_TYPE');
+            if (sellCurrencyType) {
+                this.setState({sellCurrencyType});
+            }
             await this.setState({ratesBaseEUR: ratesBaseEUR});
             await this.setRate();
             this.setCryptoRate();
         } catch (err) {
-            alert(JSON.stringify(err));
+            // alert(JSON.stringify(err));
         }
 
     }
@@ -54,6 +72,17 @@ export default class HomeScreen extends React.Component {
     async setCryptoRate() {
         const {cryptoType} = this.state;
         try {
+            // const params = {
+            //     start: 1,
+            //     limit: 5000,
+            //     convert: 'USD'
+            // };
+            // const cryptoRes = await axios.get(`https://rest.coinapi.io/v1/exchangerate/${cryptoType}?apikey=D2A8FF26-AB8A-4CED-8B5B-D08B4473B6D5`);
+
+            // const params = {
+            //     apikey: 'D2A8FF26-AB8A-4CED-8B5B-D08B4473B6D5'
+            // };
+            // const cryptoRes = await this.props.getLatestCurrencyRate(params);
             const cryptoRes = await axios.get(`https://rest.coinapi.io/v1/exchangerate/${cryptoType}?apikey=D2A8FF26-AB8A-4CED-8B5B-D08B4473B6D5`);
             let ratesBaseBitCoin = cryptoRes.data.rates;
             let EUR = ratesBaseBitCoin.filter(item => item.asset_id_quote === 'EUR');
@@ -63,10 +92,10 @@ export default class HomeScreen extends React.Component {
             if (EUR[0]) {
                 this.setState({cryptoBuyRate: rateBuyBaseEUR * EUR[0].rate, cryptoSellRate: rateSellBaseEUR * EUR[0].rate});
             } else {
-                alert('未获取到EUR[0]');
+                // alert('未获取到EUR[0]');
             }
         } catch (err) {
-            alert(JSON.stringify(err));
+            // alert(JSON.stringify(err));
         }
     }
 
@@ -78,21 +107,22 @@ export default class HomeScreen extends React.Component {
     }
 
     async buyCurrencyTypeChange(itemValue, itemIndex) {
-        await this.setState({buyCurrencyType: itemValue})
+        await this.setState({buyCurrencyType: itemValue});
+        await AsyncStorage.setItem('BUY_CURRENCY_TYPE', itemValue);
         this.setRate();
 
     }
 
     async sellCurrencyTypeChange(itemValue, itemIndex) {
-        await this.setState({sellCurrencyType: itemValue})
+        await this.setState({sellCurrencyType: itemValue});
+        await AsyncStorage.setItem('SELL_CURRENCY_TYPE', itemValue);
         this.setRate();
-
     }
 
     async cryptoTypeChange(itemValue, itemIndex) {
-        await this.setState({cryptoType: itemValue})
+        await this.setState({cryptoType: itemValue});
+        await AsyncStorage.setItem('CRYPTO_TYPE', itemValue);
         this.setCryptoRate();
-
     }
 
     async buyChange(buy) {
@@ -122,32 +152,25 @@ export default class HomeScreen extends React.Component {
     }
 
     render() {
-        const {rate,cryptoCoins, buy, sell, msg, ratesBaseEUR, buyCurrencyType, sellCurrencyType,cryptoType,cryptoBuyRate,cryptoSellRate} = this.state;
+        const {rate, cryptoCoins, buy, sell, msg, ratesBaseEUR, buyCurrencyType, sellCurrencyType, cryptoType, cryptoBuyRate, cryptoSellRate} = this.state;
         return (
             <View style={styles.container}>
                 <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-                    <View style={styles.welcomeContainer}>
-                        <Image
-                            source={
-                                __DEV__
-                                    ? require('../assets/images/robot-dev.png')
-                                    : require('../assets/images/robot-prod.png')
-                            }
-                            style={styles.welcomeImage}
-                        />
-                    </View>
-                    <View style={styles.panel}>
+                    <View style={styles.currencyPanel}>
                         <Picker
                             selectedValue={buyCurrencyType}
-                            style={{width: '50%'}}
+                            style={{flex: 1}}
                             onValueChange={this.buyCurrencyTypeChange.bind(this)}>
                             {Object.keys(ratesBaseEUR).map((key, i) => {
                                 return <Picker.Item key={key} value={key} label={key}/>
                             })}
                         </Picker>
+                        <View style={styles.ratePanel}>
+                            <Text style={styles.rateText}>{rate.toFixed(2) + '  :  1'}</Text>
+                        </View>
                         <Picker
                             selectedValue={sellCurrencyType}
-                            style={{width: '50%'}}
+                            style={{flex: 1}}
 
                             onValueChange={this.sellCurrencyTypeChange.bind(this)}>
                             {Object.keys(ratesBaseEUR).map((key, i) => {
@@ -156,7 +179,7 @@ export default class HomeScreen extends React.Component {
                         </Picker>
 
                     </View>
-                    <View style={styles.panel}>
+                    <View style={styles.cryptoPanel}>
                         <Picker
                             selectedValue={cryptoType}
                             style={{width: '100%'}}
@@ -166,10 +189,8 @@ export default class HomeScreen extends React.Component {
                             })}
                         </Picker>
                     </View>
-                    <View style={styles.panel}>
-                        <Text style={styles.output}>{rate.toFixed(2)}</Text>
-                    </View>
-                    <View style={styles.panel}>
+
+                    <View style={styles.cryptoRatePanel}>
                         <TextInput
                             style={styles.input}
                             value={cryptoBuyRate.toFixed(2)}
@@ -180,7 +201,7 @@ export default class HomeScreen extends React.Component {
                         />
 
                     </View>
-                    <View style={styles.panel}>
+                    <View style={styles.inputCurrencyPanel}>
                         <TextInput
                             style={styles.input}
                             onChangeText={this.buyChange.bind(this)}
@@ -193,8 +214,18 @@ export default class HomeScreen extends React.Component {
                         />
 
                     </View>
-                    <View style={styles.panel}>
+                    <View style={styles.msgPanel}>
                         <Text style={styles.output}>{msg}</Text>
+                    </View>
+                    <View style={styles.welcomeContainer}>
+                        <Image
+                            source={
+                                __DEV__
+                                    ? require('../assets/images/icon.png')
+                                    : require('../assets/images/icon.png')
+                            }
+                            style={styles.welcomeImage}
+                        />
                     </View>
                     {/*<View style={styles.getStartedContainer}>*/}
                     {/*{this._maybeRenderDevelopmentModeWarning()}*/}
@@ -262,27 +293,67 @@ export default class HomeScreen extends React.Component {
 // };
 }
 
+export default HomeScreen;
+// export default connect(
+//     ({}) => ({}), {...actions},
+// )(HomeScreen)
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#fff',
     },
-    panel: {
+    currencyPanel: {
         flex: 1,
         flexDirection: 'row',
     },
+    ratePanel: {
+        flex: 2,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    rateText: {
+        fontSize: 20,
+        borderColor: 'gray',
+        // borderWidth: 1,
+    },
+    cryptoPanel: {
+        flex: 1,
+        flexDirection: 'column',
+    },
+    cryptoRatePanel: {
+        flex: 1,
+        flexDirection: 'row',
+    },
+    inputCurrencyPanel: {
+        flex: 1,
+        flexDirection: 'row',
+    },
+
+    msgPanel: {
+        flex: 1,
+        flexDirection: 'row',
+    },
+
     input: {
         height: 40,
         borderColor: 'gray',
         borderWidth: 1,
         width: '50%'
     },
-    output: {
+    msg: {
         height: 40,
         borderColor: 'gray',
         // borderWidth: 1,
-        width: '100%'
+        width: '40%'
     },
+
+    icon: {
+        flex: 1,
+        flexDirection: 'row',
+    },
+
+
     // developmentModeText: {
     //   marginBottom: 20,
     //   color: 'rgba(0,0,0,0.4)',
@@ -300,7 +371,7 @@ const styles = StyleSheet.create({
     },
     welcomeImage: {
         width: 100,
-        height: 80,
+        height: 100,
         resizeMode: 'contain',
         marginTop: 3,
         marginLeft: -10,
