@@ -339,6 +339,8 @@ const styles = StyleSheet.create({
         height: 40,
         borderColor: 'gray',
         borderWidth: 1,
+        marginTop:10,
+        paddingLeft:10,
         width: '50%'
     },
     msg: {

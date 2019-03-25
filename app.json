@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Crypto currency revenue tracking",
+    "name": "crypto tool",
     "slug": "crypto-track",
     "privacy": "public",
     "sdkVersion": "32.0.0",
@@ -26,7 +26,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.zrworg.cryptotrack"
     },
-    "description": "Cryptographic currency, buy, sell, real-time currency exchange rate, real-time cryptocurrency exchange rate, profitability",
+    "description": "Crypto currency,BTC,ETH,coin,rate,Cryptographic currency,crypto tools,crypto tool,buy, sell, real-time currency exchange rate, real-time cryptocurrency exchange rate, profitability,note,notes,crypto currency notes",
     "githubUrl": "https://github.com/zrwdopod/crypto-track.git"
   }
 }
